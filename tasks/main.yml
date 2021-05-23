@@ -1,0 +1,57 @@
+---
+
+- name: Load OS variables.
+  include_vars: '{{ item }}'
+  with_first_found:
+    - '{{ ansible_distribution }}.yml'
+    - '{{ ansible_os_family }}.yml'
+
+- name: Install unbound
+  package:
+    name: '{{ unbound__packages }}'
+    state: present
+
+- name: Ensure '{{ unbound__var }}' Exists
+  file:
+    path: '{{ unbound__var }}'
+    state: directory
+    owner: '{{ unbound__user }}'
+    group: '{{ unbound__group }}'
+
+- name: Download root hints
+  get_url:
+    url: '{{ unbound__root_hints_url }}'
+    dest: '{{ unbound__root_hints }}'
+    force: yes
+
+- name: Update root hints cron job
+  cron:
+    name: 'Update unbound root hints'
+    special_time: weekly
+    cron_file: unbound
+    job: 'curl {{ unbound__root_hints_url }} -o {{ unbound__root_hints }} && service {{ unbound__service }} restart'
+    user: root
+    state: present
+  when:
+    - unbound__cron_root_hints
+
+- name: Install unbound.conf
+  template:
+    src: unbound.conf.j2
+    dest: '{{ unbound__conf }}/unbound.conf'
+    force: yes
+  notify:
+    - restart unbound
+
+- name: Generate root.key
+  command: 'unbound-anchor -a {{ unbound__var }}/root.key'
+  args:
+    creates: '{{ unbound__var }}/root.key'
+  register: anchor_result_cmd
+  failed_when: anchor_result_cmd.rc > 1  # 0: key exists and is ok, 1: key does not exists and is generated.
+
+- name: Ensure unbound is Enabled and Started
+  service:
+    name: '{{ unbound__service }}'
+    enabled: yes
+    state: started

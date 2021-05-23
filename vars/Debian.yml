@@ -1,0 +1,24 @@
+---
+
+# Installation
+# ============
+
+# Unbound and dependancies packages
+unbound__packages:
+  - curl  # root hints cron update
+  - unbound
+
+# Configuration
+# =============
+
+# Location of unbound.conf
+unbound__conf: '/etc/unbound'
+
+# Location of unbound data
+unbound__var: '/var/lib/unbound'
+
+# Location of unbound root hints
+unbound__root_hints: '{{ unbound__var }}/root.hints'
+
+# Default anchor file
+unbound__anchor_file: '{{ unbound__var }}/root.key'

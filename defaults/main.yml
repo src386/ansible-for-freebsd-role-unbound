@@ -1,0 +1,51 @@
+---
+
+# Daemon
+# ======
+
+# Unbound service name
+unbound__service: 'unbound'
+
+# Unbound daemon user
+unbound__user: 'unbound'
+
+# Unbound daemon group
+unbound__group: 'unbound'
+
+# Configuration
+# =============
+
+# Listen interface
+unbound__listen_interfaces: 
+  - '0.0.0.0'
+  - '::0'
+
+# Listen port
+unbound__listen_port: '53'
+
+# "no" for Docker/Molecule. Otherwise should be "yes".
+unbound__do_ip6: 'yes'
+
+# Automatically get Network IP/Mask
+unbound__network_facts: '{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}'  # Get 192.168.0.0/255.255.255.0
+
+# Convert Network IP/Mask to IP/bit
+unbound__network_facts_short: '{{ unbound__network_facts | ipaddr("net") }}'  # Convert to 192.168.0.0/24
+
+# Access-control rules
+unbound__acl:
+  - '127.0.0.0/8 allow'
+  - '::1/128 allow'
+  - 'fe80::/10 allow'
+  - '{{ unbound__network_facts_short }} allow'
+  - '0.0.0.0/0 refuse'
+  - '::0/0 refuse'
+
+# Update hints
+# ============
+
+# Root hints url
+unbound__root_hints_url: ftp://FTP.INTERNIC.NET/domain/named.cache
+
+# Enable update hints cron
+unbound__cron_root_hints: True

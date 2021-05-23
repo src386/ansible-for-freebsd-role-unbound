@@ -1,0 +1,39 @@
+# {{ ansible_managed }}
+
+server:
+    # General
+    num-threads: 1
+    chroot: ""
+    username: "{{ unbound__user }}"
+    directory: ""
+
+
+    # Listen
+{% for interface in unbound__listen_interfaces %}
+    interface: "{{ interface }}"
+{% endfor %}
+    port: "{{ unbound__listen_port }}"
+
+    # Ipv6
+    do-ip6: {{ unbound__do_ip6 }}
+
+    # ACL
+{% for acl in unbound__acl %}
+    access-control: {{ acl }}
+{% endfor %}
+
+    # Resolver
+    root-hints: "{{ unbound__root_hints }}"
+
+    # DNSSEC
+    auto-trust-anchor-file: "{{ unbound__anchor_file }}"
+
+    # Privacy
+    qname-minimisation: yes
+
+    # Log
+    use-syslog: yes
+    verbosity: 1
+
+    # Includes
+    # include: "{{ unbound__conf }}/conf.d/*.conf"
